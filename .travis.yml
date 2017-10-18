@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+- '6'
+install:
+  - npm install --no-optional && npm install @deskproapps/dpat@^0.7
+script:
+  - npm test && npm run package
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: KA1l6xEWwJCDEr/1UIoqW+TV8I9C8HToNFSaZ5Eos026FCkCcigPUWNw/mcKCgVvTgupxSioNQekTCV78McWz21uu6zNTWZgVGGzmNrkIt6iKneEfZkwEeXKh9Rgwqf8lbHyAR7csU2IEiycWWW98SGL4PZoarA5qsI4maBOTwtznYVoNgA9t1r/NXPVj9F09k4Mfghf235bhyP9j+qlIOu+I8ZQwq+d9TOf8xEYs4IHAsNm/a/P7F9m7hwxeBtLajUpFX1+ariWnGyO75Z5rjqGIoIJPGW1OVOTOKifcBfaKGn8rPN7yTqVsKG1aV2JsdjD9889GtzO/Tky+NRPofAbS0r0nmNAvUHghvd3xLwoV0/89nYBFN/1Y81inm1HImpxTqxWzU6fPWkqFD60aML7LElHG7BRfzzXVXJJIMvEMQ6mVKUqndu4SQpfenWxaYDq3d7rYuE5MsWiL065lNc4kKqfuZVgPFO/VW3NfA5FXLITJC+HIVAU5SWFy5MEpYaXjYUqSTNaHwE++Dedm+Q4btWBF9ED51pXq7VtT4HTWN67/F++KyMJEuNeiabwWeCnckszRIvLyWvkCpdWYyW3+BCZyQMbvJIZHnsygSv2v0N+LHs2CZ8PE0kZLk9VLF6sgnbpyCcgB69HVnEfyFzDRvd4EedXQ0WPsS5LiZ4=
+  file: dist/app.zip
+  on:
+    repo: DeskproApps/jira
+    tags: true

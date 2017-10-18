@@ -1,0 +1,96 @@
+{
+  "name": "@deskproapps/jira",
+  "version": "0.1.0",
+  "description": "Enables agents to link Deskpro tickets and Jira issues. Allows creating, searching and listing Jira issues from within Deskpro.",
+  "main": "lib/main/javascript/index.js",
+  "scripts": {
+    "dev": "dpat server .",
+    "lint": "eslint src/main/javascript/* --ext .js,.jsx --cache --cache-location=.cache/eslint",
+    "lint:fix": "npm run lint -- --fix",
+    "package": "dpat clean . && dpat compile . && dpat bundle-installer . && dpat verify ./dist && dpat package .",
+    "test": "dpat test ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeskproApps/jira.git"
+  },
+  "keywords": [
+    "deskpro",
+    "deskpro app",
+    "deskpro jira",
+    "jira"
+  ],
+  "author": {
+    "name": "DeskPRO Ltd.",
+    "email": "apps@deskpro.com",
+    "url": "https://deskpro.com"
+  },
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/DeskproApps/jira/issues"
+  },
+  "homepage": "https://github.com/DeskproApps/jira#readme",
+  "deskpro": {
+    "version": "2.3.0",
+    "title": "Jira",
+    "isSingle": true,
+    "scope": "agent",
+    "storage": [
+      {
+        "name": "oauth:jira",
+        "isBackendOnly": true,
+        "permRead": "EVERYBODY",
+        "permWrite": "OWNER"
+      }
+    ],
+    "targets": [
+      {
+        "target": "ticket-sidebar",
+        "url": "html/index.html"
+      }
+    ],
+    "settings": [],
+    "customFields": [
+      {
+        "type": "dataList",
+        "attachedTo": "ticket",
+        "alias": "trelloCards",
+        "title": "Jira linked issues"
+      }
+    ],
+    "deskproApiTags": [
+      "tickets.*"
+    ],
+    "externalApis": [
+      "/^https?://([^.]+\\.)*atlassian.net/?.*$/"
+    ]
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^7.2.3",
+    "babel-plugin-module-resolver": "^2.7.1",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.2",
+    "eslint-plugin-compat": "^1.0.4",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-react": "^7.1.0",
+    "file-loader": "^0.11.2",
+    "jsdom": "^11.2.0",
+    "prop-types": "^15.5.10",
+    "react-test-renderer": "^15.6.1",
+    "url-loader": "^0.5.9",
+    "react-router-dom": "^4.2.2"
+  },
+  "dependencies": {
+    "@deskproapps/deskproapps-sdk-react": "1.0.0-beta.10",
+    "deskpro-components": "1.0.3",
+    "react": "^15.6.1",
+    "react-dom": "^15.6.1"
+  },
+  "optionalDependencies": {
+    "changelog-verify": "1.0.4",
+    "version-changelog": "2.1.0"
+  }
+}
