@@ -13,7 +13,6 @@ module.exports = function (env)
   );
 
   const resources = dpat.Resources.copyDescriptors(buildManifest, PROJECT_ROOT_PATH);
-  const bundlePackages = dpat.BuildUtils.bundlePackages(PROJECT_ROOT_PATH, 'devDependencies');
   const babelOptions = dpat.Babel.resolveOptions(PROJECT_ROOT_PATH, { babelrc: false });
 
   // emulate the Files API path which is used by deskpro to fetch the app files
@@ -52,8 +51,7 @@ module.exports = function (env)
       main: [
         `webpack-dev-server/client?http://localhost:31080`,
         path.resolve(PROJECT_ROOT_PATH, 'src/webpack/entrypoint.js')
-      ],
-      vendor: bundlePackages
+      ]
     },
     module: {
       loaders: [
@@ -76,11 +74,11 @@ module.exports = function (env)
           loader: extractCssPlugin.extract({use: ['css-loader', 'sass-loader']}),
           test: /\.scss$/
         },
-        { test: /\.(png|jpg)$/, use: 'url-loader?limit=15000' },
-        { test: /\.eot(\?v=\d+.\d+.\d+)?$/, use: 'file-loader' },
-        { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, use: 'url-loader?limit=10000&mimetype=application/font-woff' },
-        { test: /\.[ot]tf(\?v=\d+.\d+.\d+)?$/, use: 'url-loader?limit=10000&mimetype=application/octet-stream' },
-        { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, use: 'url-loader?limit=10000&mimetype=image/svg+xml' }
+        { test: /\.(png|jpg)$/, loader: 'url-loader', options: { limit: 15000 } },
+        { test: /\.eot(\?v=\d+.\d+.\d+)?$/, loader: 'file-loader' },
+        { test: /\.[ot]tf(\?v=\d+.\d+.\d+)?$/, loader: 'url-loader', options: { limit: 10000, mimetype: 'application/octet-stream' } },
+        { test: /\.svg(\?v=\d+\.\d+\.\d+)?$/, loader: 'url-loader', options: { limit: 10000, mimetype: 'image/svg+xml' } },
+        { test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'url-loader', options: { limit: 10000, mimetype: 'application/font-woff' } }
       ],
     },
     output: {
@@ -92,7 +90,13 @@ module.exports = function (env)
     plugins: [
       extractCssPlugin,
 
-      new dpat.Webpack.optimize.CommonsChunkPlugin({name: ['vendor'], minChunks: Infinity}),
+      new dpat.Webpack.optimize.CommonsChunkPlugin({
+        name: ['vendor'],
+        minChunks: function (module) {
+          // this assumes your vendor imports exist in the node_modules directory
+          return module.context && module.context.indexOf("node_modules") !== -1;
+        }
+      }),
       new dpat.Webpack.NamedModulesPlugin(),
 
       new dpat.Webpack.CopyWebpackPlugin(resources, { debug: true, copyUnmodified: true }),
