@@ -1,35 +1,42 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from '@deskpro/apps-sdk-react'
+import { Routes } from '../App/Routes'
+import { IssueList, IssueListElement } from '../UI'
+import { Container, Heading, List, Scrollbar } from '@deskpro/react-components';
 
-import { Section, Input, SelectableList, List, ListElement, Scrollbar } from '@deskpro/react-components';
-import { IssueList } from '../UI'
-
-export class UI  extends React.Component
+export class UI  extends React.PureComponent
 {
   static propTypes = {
 
     issues: PropTypes.array.isRequired,
 
-    issueActions: PropTypes.object.isRequired,
-
-    navigateToCreate: PropTypes.func.isRequired,
+    issueActions: PropTypes.object.isRequired
   };
 
 
   renderEmptyList()
   {
-    const { navigateToCreate } = this.props;
 
     return (<div>
       <p>You haven't linked any issues to this ticket. </p>
-      <p>Click <a href="#here" onClick={navigateToCreate}>here</a> to create an issue.</p>
+      <p>Click <Link to={Routes.createIssue}>here</Link></p>
     </div>);
   }
 
   renderList()
   {
     const { issues, issueActions } = this.props;
-    return (<IssueList issues={issues} actions={issueActions}/>);
+
+    return (
+      <List>
+        {
+          issues.map(issue => {
+            return (<IssueListElement key={issue.key} issue={issue} actions={issueActions[issue.key] || []} />)
+          })
+        }
+      </List>
+    );
   }
 
   render()

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { ListElement } from '@deskpro/react-components';
+import { ListElement, Icon, Heading } from '@deskpro/react-components';
 
 export class IssueListElement extends React.Component
 {
@@ -9,36 +9,65 @@ export class IssueListElement extends React.Component
 
     issue: PropTypes.object.isRequired,
 
-    action: PropTypes.object.isRequired
+    actions: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        dispatch: PropTypes.func.isRequired
+      })
+    ).isRequired
   };
 
   render()
   {
-    const { issue, action } = this.props;
+    const { issue, actions } = this.props;
     const { key, fields } = issue;
 
-    const actionModifier = action.type === 'link' ? 'issue-card__action--inactive' : '';
-    const actionTitle = action.type === 'link' ? 'Link' : 'Unlink';
-
     return (
-      <ListElement>
-        <div className={"issue-card"}>
-          <div className={"issue-card__header"}>
-            <h1 className={"issue-card__title"}> { key } </h1>
-            <img className={"issue-card__type"} src={ fields.issuetype.iconUrl } title={ fields.issuetype.name }/>
+      <ListElement className="dp-issue-card">
 
-            <a className={`issue-card__action ${actionModifier}`} href="#" onClick={() => action.dispatch(issue) } title={actionTitle}>
-              <i className={`fa fa-link fa-fw`} aria-hidden="true" ></i>
-            </a>
-          </div>
+        <Heading size={3}>
+          <span>
+            <img className={"dp-issue-card__issue-type"} src={ fields.issuetype.iconUrl } title={ fields.issuetype.name }/>
+            { key }
+          </span>
+          <span>
+            { actions.map(action => this.renderAction(issue, action)) }
+          </span>
+        </Heading>
 
-          <p className="issue-card__body">
-            { fields.summary }
-          </p>
-
-        </div>
+        <p className="dp-issue-card__summary">
+          { fields.summary }
+        </p>
 
       </ListElement>
     );
   }
+
+  renderAction(issue, action)
+  {
+    const { name, dispatch } = action;
+    // do not display edit fields
+    if (name === 'edit') {
+      return null;
+    }
+
+    const actionModifier = action.name === 'link' ? 'issue-card__action--inactive' : '';
+
+    let actionTitle = 'edit';
+    let actionIcon = 'fa-pencil';
+    if (name === 'link') {
+      actionTitle = 'Link';
+      actionIcon = 'fa-link';
+    } else if (name === 'unlink') {
+      actionTitle = 'Unlink';
+      actionIcon = 'fa-link';
+    }
+
+    return (
+      <a key={`${issue.id}__${name}`} className={`issue-card__action ${actionModifier}`} href="#" onClick={() => dispatch(issue) } title={actionTitle}>
+        <i className={`fa fa-fw ${actionIcon}`} aria-hidden="true" />
+      </a>
+    );
+  }
+
 }

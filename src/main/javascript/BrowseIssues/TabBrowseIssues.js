@@ -2,31 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { UI } from './UI'
-
-const createThrottle  = (callback, delay) => {
-  let isThrottled = false, args, context;
-
-  function throttle() {
-    if (isThrottled) {
-      args = arguments;
-      context = this;
-      return;
-    }
-
-    isThrottled = true;
-    callback.apply(this, arguments);
-
-    setTimeout(() => {
-      isThrottled = false;
-      if (args) {
-        throttle.apply(context, args);
-        args = context = null;
-      }
-    }, delay);
-  }
-
-  return throttle;
-};
+import { createThrottle } from '../Infrastructure'
+import { createSearchIssuesAction } from './Services'
+import { createLinkJiraIssueAction, createUnlinkJiraIssueAction} from '../LinkIssues';
+import { Routes } from '../App';
 
 export class TabBrowseIssues  extends React.Component
 {
@@ -34,20 +13,18 @@ export class TabBrowseIssues  extends React.Component
 
   static propTypes = {
 
-    navigate: PropTypes.func.isRequired,
+    route:   PropTypes.object.isRequired,
+
+    dispatch:   PropTypes.func.isRequired,
+
+    foundIssues: PropTypes.array.isRequired,
 
     linkedIssues: PropTypes.array.isRequired
   };
 
   static contextTypes = {
 
-    searchJiraIssues: PropTypes.func.isRequired,
-
-    linkJiraIssue: PropTypes.func.isRequired,
-
-    unlinkJiraIssue: PropTypes.func.isRequired,
-
-    createIssueAction: PropTypes.func.isRequired
+    ticket: PropTypes.func.isRequired
   };
 
   constructor(props)
@@ -59,7 +36,6 @@ export class TabBrowseIssues  extends React.Component
   init()
   {
     this.state = {
-      issues: [],
       issueActions: {},
       ui: 'normal'
     }
@@ -80,51 +56,44 @@ export class TabBrowseIssues  extends React.Component
       return;
     }
 
-    const {
-      /** @type {function} */ searchJiraIssues,
-      /** @type {function} */ createIssueAction,
-    } = this.context;
-
-    this.setState({ ui: 'loading' });
-
-    searchJiraIssues(query).then(issues => {
-      const actionInterceptor = this.onIssueAction.bind(this);
-      const issueActions = issues.reduce((acc, issue) => {
-        acc[issue.key] = createIssueAction(issue, { interceptor: actionInterceptor });
-        return acc;
-      }, {});
-
-      this.setState({ ui: 'normal', issues, issueActions });
-    });
-  }
-
-  onIssueAction(action, issue)
-  {
-    const {
-      /** @type {function} */ createIssueAction
-    } = this.context;
-
-
-    // to do stop searching
-    action.dispatch(issue)
-      .then(issue => {
-        const { issueActions } = this.state;
-        const existingAction = issueActions[issue.key];
-        if (existingAction) {
-          const actionInterceptor = this.onIssueAction.bind(this);
-          issueActions[issue.key] = createIssueAction(issue, { interceptor: actionInterceptor });
-          this.setState({ issueActions });
-        }
-      })
-    ;
+    const { dispatch } = this.props;
+    dispatch(createSearchIssuesAction(query));
   }
 
   render()
   {
-    const { issues, issueActions, ui } = this.state;
+    const {
+      /** @type {function} */ ticket,
+    } = this.context;
+
+    const { ui } = this.state;
+    const { foundIssues, linkedIssues, dispatch, route } = this.props;
+    const issueActions = foundIssues.reduce((acc, issue) => {
+      const actions = [];
+      if (linkedIssues.filter(x => x.key === issue.key).length) {
+        actions.push({
+          name: 'unlink',
+          dispatch: () => dispatch(createUnlinkJiraIssueAction(issue, ticket()))
+        });
+      } else {
+        actions.push({
+          name: 'link',
+          dispatch: () => dispatch(createLinkJiraIssueAction(issue, ticket()))
+        });
+      }
+
+      actions.push({
+        name: 'edit',
+        dispatch: issue => route.to(Routes.editIssue, { issue })
+      });
+
+      acc[issue.key] = actions;
+      return acc;
+    }, {});
+
     return (<UI
       state={ui}
-      issues={issues}
+      issues={foundIssues}
       issueActions={issueActions}
       onSearch={createThrottle(this.onSearch.bind(this), 500)}
     />);
