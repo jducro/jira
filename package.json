@@ -1,6 +1,6 @@
 {
   "name": "@deskproapps/jira",
-  "version": "0.1.0-beta.1",
+  "version": "0.1.0-beta.2",
   "description": "Enables agents to link Deskpro tickets and Jira issues. Allows creating, searching and listing Jira issues from within Deskpro.",
   "main": "lib/main/javascript/index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "lint": "eslint src/main/javascript/* --ext .js,.jsx --cache --cache-location=.cache/eslint",
     "lint:fix": "npm run lint -- --fix",
     "package": "dpat clean . && dpat compile . && dpat bundle-installer . && dpat verify ./dist && dpat package .",
-    "test": "dpat test ."
+    "test": "dpat test .",
+    "version": "version-changelog CHANGELOG.md && changelog-verify CHANGELOG.md && git add CHANGELOG.md"
   },
   "repository": {
     "type": "git",
@@ -95,8 +96,8 @@
     ]
   },
   "devDependencies": {
-    "@deskpro/apps-dpat": "^0.9.5",
-    "@deskpro/apps-installer": "github:deskpro/apps-installer#v0.4.1",
+    "@deskpro/apps-dpat": "0.9.6",
+    "@deskpro/apps-installer": "github:deskpro/apps-installer#v0.4.2",
     "@deskpro/apps-sdk-react": "0.2.2",
     "@deskpro/react-components": "1.2.3",
     "file-loader": "1.1.5",
