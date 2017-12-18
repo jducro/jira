@@ -1,4 +1,4 @@
-import { Select } from '@deskpro/react-components';
+import { SelectAdapter } from '../UI';
 
 
 export class GenericSelectFieldMapper
@@ -11,11 +11,7 @@ export class GenericSelectFieldMapper
   {
     const { schema } = field;
 
-    if (schema && typeof schema === 'object' && schema.type === 'priority' ) {
-      return true;
-    }
-
-    if (schema && typeof schema === 'object' && schema.type === 'array' && field.allowedValues) {
+    if (schema && typeof schema === 'object' && field.allowedValues) {
       // exception: can not handle attachements
       return !(schema.items && schema.items === 'attachement');
     }
@@ -46,10 +42,12 @@ export class GenericSelectFieldMapper
   {
     const allowedValues = field.allowedValues instanceof Array ? field.allowedValues : [];
     return (
-      <Select
+      <SelectAdapter
         name={ field.key }
         //validate={false}
-        options={ allowedValues.map(({ id, name }) => ({ label: name, value: id })) }
+        options= {allowedValues}
+        value={value}
+        multi={field.schema.type === 'array'}
       />);
   }
 }

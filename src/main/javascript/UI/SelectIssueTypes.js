@@ -55,7 +55,10 @@ export class SelectIssueTypes  extends React.Component
   onChange = ({value}, name) =>
   {
     if (this.props.onChange) {
-      this.props.onChange(value, name);
+      const { options } = this.props;
+      const option = options.filter(({ id }) => id === value).pop();
+
+      this.props.onChange(option, name);
     }
   };
 

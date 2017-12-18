@@ -38,22 +38,26 @@ export class SelectProjects  extends React.Component
     return values.map(({ id, name }) => ({ label: name, value: id }));
   }
 
-  onChange = ({value}, name) =>
+  onChange = ({ value }, name) =>
   {
     if (this.props.onChange) {
-      this.props.onChange(value, name);
+      const { options } = this.props;
+      const option = options.filter(({ id }) => id === value).pop();
+
+      this.props.onChange(option, name);
     }
   };
 
   render()
   {
-    const { name, options, onChange, id, value } = this.props;
+    const { name, options, id, value } = this.props;
+    const selectValue = typeof value === 'string' || !value ? value : value.id;
 
     return (
       <Select
         id={ id }
         name={ name }
-        value={ value }
+        value={ selectValue }
         validate={false}
         options={ this.convertOptions(options) }
         onChange={ this.onChange }

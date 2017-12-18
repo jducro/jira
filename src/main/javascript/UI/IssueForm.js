@@ -3,50 +3,79 @@ import PropTypes from 'prop-types';
 
 import { Form, Container, Group, Label, Input, HiddenFields  } from '@deskpro/react-components';
 
-import { SelectProjects, SelectIssueTypes, SubmitButton } from '../UI';
+import { SelectAdapter, SubmitButton, IssueField, DisplayField } from '../UI';
 import { IssueFieldMapper } from '../IssueFields';
 
 export class IssueForm  extends React.Component
 {
+
+  static get ACTIONTYPE_EDIT() { return 'edit'; }
+
+  static get ACTIONTYPE_CREATE() { return 'create'; }
+
+  static createRenderDisplay()
+  {
+    return function({ value, name }) {
+      return (<DisplayField value={ value } name={name} />);
+    }
+  }
+
+  static createRenderSelect(options)
+  {
+    return function({ name, value, onChange }) {
+      return (<SelectAdapter
+        id={name}
+        name={name}
+        value={ value }
+        options={ options }
+        onChange={ onChange }
+      />);
+    }
+  }
+
   static propTypes = {
     onSubmit: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
 
-    projects: PropTypes.array.isRequired,
-    issueTypes: PropTypes.array.isRequired,
-
     values: PropTypes.object.isRequired,
 
     primaryFields: PropTypes.array.isRequired,
-    secondaryFields: PropTypes.array.isRequired
+    secondaryFields: PropTypes.array.isRequired,
+
+    renderProject: PropTypes.func.isRequired,
+    renderIssueType: PropTypes.func.isRequired,
+
+    actionType: PropTypes.string.isRequired
   };
+
+  static defaultProps = { actionType: IssueForm.ACTIONTYPE_CREATE };
 
   render()
   {
-    const { projects, issueTypes, primaryFields, secondaryFields, onSubmit, onChange, values } = this.props;
+    const { primaryFields, secondaryFields, onSubmit, onChange, values } = this.props;
 
     return (
 
       <Form name="create_issue" onSubmit={onSubmit}>
 
         <Group label="Project" >
-          <SelectProjects
-            id="project"
-            name="project"
-            value={ values.project}
-            options={ projects }
-            onChange={onChange}
-          />
+          {
+            this.props.renderProject({
+              name: "project",
+              value: values.project,
+              onChange
+            })
+          }
         </Group>
 
         <Group label="Issue Type" >
-          <SelectIssueTypes
-            id="issuetype"
-            name="issuetype"
-            value={ values.issuetype }
-            options={ issueTypes }
-            onChange={ onChange }
-          />
+          {
+            this.props.renderIssueType({
+              name: "issuetype",
+              value: values.issuetype,
+              onChange
+            })
+          }
         </Group>
 
         {
@@ -61,17 +90,17 @@ export class IssueForm  extends React.Component
           }
         </HiddenFields>
         <br/>
-        { this.renderCreateButton() }
+        { this.renderFormControls() }
 
       </Form>
 
     );
   }
 
-  renderCreateButton()
+  renderFormControls()
   {
     return (
-      <SubmitButton> Create </SubmitButton>
+      <SubmitButton> {  this.props.actionType === IssueForm.ACTIONTYPE_CREATE ? 'Create' : 'Edit'  } </SubmitButton>
     );
   }
 
@@ -87,7 +116,7 @@ export class IssueForm  extends React.Component
 
     return (
       <Group key={`field-group-${id}`} label={label} >
-        { React.cloneElement(formComponent, { id, onChange }) }
+        <IssueField component={formComponent} field={field} onChange={onChange} />
       </Group>
     );
   }

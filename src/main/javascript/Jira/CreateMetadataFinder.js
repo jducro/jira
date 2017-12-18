@@ -39,7 +39,7 @@ export class CreateMetadataFinder
   {
     const { projects } = this.state;
     if (projects instanceof Array) {
-      return projects.map(({ avatarUrls, id, key, name }) => ({ avatarUrls, id, key, name }));
+      return projects.map(({ expand, issuetypes, avatarUrls, id, key, name, ...rest }) => ({ avatarUrls, id, key, name, ...rest }));
     }
     return [];
   }
@@ -56,7 +56,7 @@ export class CreateMetadataFinder
       return  projects
         .filter(({ key, id }) => key === projectKey || "" + id === "" + projectKey )
         .reduce((acc, { issuetypes }) => acc.concat(issuetypes), [])
-        .map(({id, name}) => ({id, name}))
+        .map(({expand, fields, id, name, ...rest}) => ({id, name, ...rest}))
       ;
 
     } catch (e) {

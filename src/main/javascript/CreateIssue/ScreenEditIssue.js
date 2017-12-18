@@ -8,6 +8,8 @@ import { createLinkJiraIssueAction } from '../LinkIssues';
 import { fieldValues } from '../IssueFields';
 
 
+const emptyObject = {};
+
 export class ScreenEditIssue  extends React.Component
 {
   static get className() {  return TabCreateIssue.prototype.constructor.name }
@@ -22,8 +24,6 @@ export class ScreenEditIssue  extends React.Component
   };
 
   static contextTypes = {
-
-    createJiraIssue: PropTypes.func.isRequired,
 
     loadJiraEditMeta: PropTypes.func.isRequired,
 
@@ -41,7 +41,8 @@ export class ScreenEditIssue  extends React.Component
     this.state = {
       primaryFields: [],
       secondaryFields: [],
-      values: {}
+      values: emptyObject,
+      changes: emptyObject
     }
   }
 
@@ -55,7 +56,7 @@ export class ScreenEditIssue  extends React.Component
       .then(meta => {
 
         const fields = Object.keys(meta.fields).map(key => meta.fields[key]);
-        const values = fieldValues(this.props.issue, fields);
+        const values = JSON.parse(JSON.stringify(this.props.issue.fields));
 
         const primaryFields = fields.filter(({ required }) => required );
         const secondaryFields = fields.filter(({ required }) => !required );
@@ -67,41 +68,50 @@ export class ScreenEditIssue  extends React.Component
 
   }
 
-  onFieldChange = (value, fieldId) =>
+  onFieldChange = (value, field) =>
   {
-    const values = { ...this.state.values, [fieldId]: value };
-    this.setState({ values });
+    const values = { ...this.state.values, [field.key]: value };
+    const changes = { ...this.state.changes, [field.key]: value };
+    this.setState({ values, changes });
   };
 
   onSubmit = () =>
   {
-    const { values } = this.state;
-    let model = JSON.parse(JSON.stringify(values));
-    model = { ...model, project: { id: values.project }, issuetype : { id: values.issuetype } };
+    const { changes } = this.state;
+    if (changes === emptyObject) {
+      return route.to(Routes.linkedIssues);
+    }
+
+    const model = JSON.parse(JSON.stringify(changes));
 
     const {
       /** @type {function} */ ticket,
-      /** @type {function({}):Promise} */ createJiraIssue,
+      /** @type {function({}):Promise} */ updateJiraIssue,
     } = this.context;
 
     const { /** @type {{to:function}} */ route, dispatch } = this.props;
 
-    createJiraIssue(model)
-      .then(issue => dispatch(createLinkJiraIssueAction(issue, ticket())))
+    updateJiraIssue(this.props.issue, model)
+      .then(() => route.to(Routes.linkedIssues))
       .then(() => route.to(Routes.linkedIssues));
+    ;
+
   };
 
   render()
   {
     const { primaryFields, secondaryFields, values } = this.state;
+    const issueTypeField = primaryFields.filter(field => field.key === "issuetype").pop();
 
     return (<IssueForm
+      actionType={ IssueForm.ACTIONTYPE_EDIT }
       onChange = { this.onFieldChange }
       onSubmit = { this.onSubmit }
 
-      projects = { [] }
-      issueTypes = { [] }
-      primaryFields = { primaryFields }
+      renderProject={IssueForm.createRenderDisplay()}
+      renderIssueType={IssueForm.createRenderSelect(issueTypeField ? issueTypeField.allowedValues : [])}
+
+      primaryFields = { primaryFields.filter(field => field.key !== "issuetype") }
       secondaryFields = { secondaryFields }
       values = {values}
     />);

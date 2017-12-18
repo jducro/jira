@@ -9,7 +9,8 @@ import { Routes } from './Routes';
 
 const reduce = createReducerChain([
   require('../BrowseIssues').reducer,
-  require('../LinkIssues').reducer
+  require('../LinkIssues').reducer,
+  require('../CreateIssue').reducer
 ]);
 
 export class App extends React.Component
@@ -28,8 +29,6 @@ export class App extends React.Component
   };
 
   static childContextTypes = {
-
-    createJiraIssue: PropTypes.func,
 
     loadJiraCreateMeta: PropTypes.func,
 
@@ -73,8 +72,6 @@ export class App extends React.Component
     this.childContext = {
 
       dispatch: this.dispatch,
-
-      createJiraIssue: this.createJiraIssue.bind(this),
 
       loadJiraCreateMeta: this.loadJiraCreateMeta.bind(this),
 
@@ -147,7 +144,8 @@ export class App extends React.Component
 
     return jiraService.readAllIssues(jiraCards).then(issues => {
       const jiraCards = issues.map(x => x.key);
-      context.customFields.setAppField('jiraCards', jiraCards);
+      console.log('the jira cards are ', jiraCards);
+      //context.customFields.setAppField('jiraCards', jiraCards);
       return {...state, linkedIssues: issues};
     });
   }
@@ -271,20 +269,6 @@ export class App extends React.Component
       httpClient: dpapp.restApi.fetchCORS.bind(dpapp.restApi),
       instanceUrl
     });
-  }
-
-  /**
-   * @param fields
-   * @return {*}
-   */
-  createJiraIssue(fields)
-  {
-    const jiraService = this.createJiraService();
-
-    return jiraService
-      .createIssue(fields)
-      .then(({ key }) => jiraService.readIssue(key))
-    ;
   }
 
   /**
