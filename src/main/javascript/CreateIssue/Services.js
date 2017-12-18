@@ -5,8 +5,7 @@ export function reducer(state, action)
 {
   const { type } = action;
   if (type === ACTION_UPDATE_ISSUE) {
-    const { foundIssues } = action;
-    return { ...state, foundIssues: foundIssues || [] };
+
   }
 
   return state;

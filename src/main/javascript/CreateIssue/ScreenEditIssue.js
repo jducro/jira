@@ -4,8 +4,7 @@ import PropTypes from 'prop-types';
 import { IssueForm } from '../UI';
 import { Routes } from '../App';
 
-import { createLinkJiraIssueAction } from '../LinkIssues';
-import { fieldValues } from '../IssueFields';
+import { createUpdateJiraIssueAction } from '../CreateIssue';
 
 
 const emptyObject = {};
@@ -78,24 +77,14 @@ export class ScreenEditIssue  extends React.Component
   onSubmit = () =>
   {
     const { changes } = this.state;
+    const { /** @type {{to:function}} */ route, dispatch } = this.props;
+
     if (changes === emptyObject) {
       return route.to(Routes.linkedIssues);
     }
 
     const model = JSON.parse(JSON.stringify(changes));
-
-    const {
-      /** @type {function} */ ticket,
-      /** @type {function({}):Promise} */ updateJiraIssue,
-    } = this.context;
-
-    const { /** @type {{to:function}} */ route, dispatch } = this.props;
-
-    updateJiraIssue(this.props.issue, model)
-      .then(() => route.to(Routes.linkedIssues))
-      .then(() => route.to(Routes.linkedIssues));
-    ;
-
+    dispatch(createUpdateJiraIssueAction(this.props.issue, model)).then(() => route.to(Routes.linkedIssues));
   };
 
   render()

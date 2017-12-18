@@ -144,7 +144,6 @@ export class App extends React.Component
 
     return jiraService.readAllIssues(jiraCards).then(issues => {
       const jiraCards = issues.map(x => x.key);
-      console.log('the jira cards are ', jiraCards);
       //context.customFields.setAppField('jiraCards', jiraCards);
       return {...state, linkedIssues: issues};
     });
