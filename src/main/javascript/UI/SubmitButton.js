@@ -3,8 +3,6 @@ import { Button } from '@deskpro/react-components';
 
 export class SubmitButton extends Button
 {
-  static propTypes = Button.propTypes;
-
   render()
   {
     const el = super.render();

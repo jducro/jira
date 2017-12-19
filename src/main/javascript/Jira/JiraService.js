@@ -240,7 +240,8 @@ export class JiraService
         body: JSON.stringify({fields})
       }))
       .catch(err => Promise.reject(err))
-      .then(response => { return response.body; })
+      //.then(response => { return response.body; }) we're receiving a 204 from jira, so we return the original issue
+      .then(response => { return issue; })
     ;
   }
 

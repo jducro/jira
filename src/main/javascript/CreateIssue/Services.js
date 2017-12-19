@@ -5,7 +5,19 @@ export function reducer(state, action)
 {
   const { type } = action;
   if (type === ACTION_UPDATE_ISSUE) {
+    const { issue } = action;
 
+    const linkedIssue = state.linkedIssues.filter(x => x.key === issue.key);
+    if (! linkedIssue.length) {
+      return state;
+    }
+
+    const linkedIssues = state.linkedIssues.reduce((acc, linkedIssue) => {
+        acc.push(linkedIssue.key === issue.key ? issue : linkedIssue);
+        return acc;
+    }, []);
+
+    return { ...state, linkedIssues };
   }
 
   return state;
@@ -41,13 +53,14 @@ export function createUpdateJiraIssueAction(issue, fields)
    * @return {*}
    */
   const action = ({ dispatch, jiraService }) => {
-    return jiraService.updateIssue(issue, fields).then(issue => {
-      dispatch({
-        type: ACTION_UPDATE_ISSUE,
-        issue: issue,
-      })
-
-    });
+    return jiraService.updateIssue(issue, fields)
+      .then(({ key }) => jiraService.readIssue(key))
+      .then(issue => {
+        dispatch({
+          type: ACTION_UPDATE_ISSUE,
+          issue: issue,
+        })
+      });
   };
 
   return action;

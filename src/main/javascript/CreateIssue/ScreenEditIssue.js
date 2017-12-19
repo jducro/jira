@@ -5,6 +5,7 @@ import { IssueForm } from '../UI';
 import { Routes } from '../App';
 
 import { createUpdateJiraIssueAction } from '../CreateIssue';
+import { createThrottle } from '../Infrastructure';
 
 
 const emptyObject = {};
@@ -41,7 +42,8 @@ export class ScreenEditIssue  extends React.Component
       primaryFields: [],
       secondaryFields: [],
       values: emptyObject,
-      changes: emptyObject
+      changes: emptyObject,
+      formSubmitted: false
     }
   }
 
@@ -83,19 +85,26 @@ export class ScreenEditIssue  extends React.Component
       return route.to(Routes.linkedIssues);
     }
 
+    // let's wait see the changes in the ui before sending the request
+    const waitForRenderMillis = 500;
+    this.setState({formSubmitted: true});
     const model = JSON.parse(JSON.stringify(changes));
-    dispatch(createUpdateJiraIssueAction(this.props.issue, model)).then(() => route.to(Routes.linkedIssues));
+    setTimeout(
+      dispatch(createUpdateJiraIssueAction(this.props.issue, model)).then(() => route.to(Routes.linkedIssues)),
+      waitForRenderMillis
+    );
+
   };
 
   render()
   {
-    const { primaryFields, secondaryFields, values } = this.state;
+    const { primaryFields, secondaryFields, values, formSubmitted } = this.state;
     const issueTypeField = primaryFields.filter(field => field.key === "issuetype").pop();
 
     return (<IssueForm
       actionType={ IssueForm.ACTIONTYPE_EDIT }
       onChange = { this.onFieldChange }
-      onSubmit = { this.onSubmit }
+      onSubmit = { createThrottle(this.onSubmit, 500) }
 
       renderProject={IssueForm.createRenderDisplay()}
       renderIssueType={IssueForm.createRenderSelect(issueTypeField ? issueTypeField.allowedValues : [])}
@@ -103,6 +112,7 @@ export class ScreenEditIssue  extends React.Component
       primaryFields = { primaryFields.filter(field => field.key !== "issuetype") }
       secondaryFields = { secondaryFields }
       values = {values}
+      loading = { formSubmitted }
     />);
   }
 }

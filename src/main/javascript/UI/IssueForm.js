@@ -45,10 +45,14 @@ export class IssueForm  extends React.Component
     renderProject: PropTypes.func.isRequired,
     renderIssueType: PropTypes.func.isRequired,
 
-    actionType: PropTypes.string.isRequired
+    actionType: PropTypes.string.isRequired,
+    loading: PropTypes.boolean
   };
 
-  static defaultProps = { actionType: IssueForm.ACTIONTYPE_CREATE };
+  static defaultProps = {
+    actionType: IssueForm.ACTIONTYPE_CREATE,
+    loading: false
+  };
 
   render()
   {
@@ -99,8 +103,11 @@ export class IssueForm  extends React.Component
 
   renderFormControls()
   {
+
+    const { loading } = this.props;
+
     return (
-      <SubmitButton> {  this.props.actionType === IssueForm.ACTIONTYPE_CREATE ? 'Create' : 'Edit'  } </SubmitButton>
+      <SubmitButton loading={ loading } disabled={ loading }> {  this.props.actionType === IssueForm.ACTIONTYPE_CREATE ? 'Create' : 'Edit'  } </SubmitButton>
     );
   }
 

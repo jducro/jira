@@ -5,7 +5,7 @@ import { IssueForm } from '../UI';
 import { Routes } from '../App';
 import { createLinkJiraIssueAction } from '../LinkIssues';
 import { createCreateJiraIssueAction } from '../CreateIssue';
-import { FieldUtils } from '../IssueFields';
+import { createThrottle } from '../Infrastructure';
 
 export class TabCreateIssue  extends React.Component
 {
@@ -40,7 +40,8 @@ export class TabCreateIssue  extends React.Component
       issueTypes: [],
       primaryFields: [],
       secondaryFields: [],
-      values: {}
+      values: {},
+      formSubmitted: false
     }
   }
 
@@ -130,18 +131,26 @@ export class TabCreateIssue  extends React.Component
 
     const { /** @type {{to:function}} */ route, dispatch } = this.props;
 
-    dispatch(createCreateJiraIssueAction(model))
-      .then(issue => dispatch(createLinkJiraIssueAction(issue, ticket())))
-      .then(() => route.to(Routes.linkedIssues));
+    // let's wait see the changes in the ui before sending the request
+    const waitForRenderMillis = 500;
+    this.setState({formSubmitted: true});
+
+    setTimeout(
+      dispatch(createCreateJiraIssueAction(model))
+        .then(issue => dispatch(createLinkJiraIssueAction(issue, ticket())))
+        .then(() => route.to(Routes.linkedIssues))
+      , waitForRenderMillis
+    );
+
   }
 
   render()
   {
-    const { projects, issueTypes, primaryFields, secondaryFields, values } = this.state;
+    const { projects, issueTypes, primaryFields, secondaryFields, values, formSubmitted } = this.state;
 
     return (<IssueForm
       onChange = { TabCreateIssue.prototype.onFieldChange.bind(this) }
-      onSubmit = { TabCreateIssue.prototype.onSubmit.bind(this) }
+      onSubmit = { createThrottle(TabCreateIssue.prototype.onSubmit.bind(this)) }
 
       renderProject={IssueForm.createRenderSelect(projects)}
       renderIssueType={IssueForm.createRenderSelect(issueTypes)}
@@ -149,6 +158,7 @@ export class TabCreateIssue  extends React.Component
       primaryFields = { primaryFields }
       secondaryFields = { secondaryFields }
       values = {values}
+      loading = { formSubmitted }
     />);
   }
 }
