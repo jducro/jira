@@ -8,7 +8,7 @@ This project is following [Semantic Versioning](http://semver.org)
 
 ### Added
 
- - allow editing jira tasks
+ - allow editing of jira issues
 
 ## [0.1.0-beta.3][] - 2017-12-13
 
