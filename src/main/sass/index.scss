@@ -70,4 +70,8 @@ $dp-styles-font-path: "~@deskpro/react-components/src/styles/fonts/";
 
 }
 
-
+.dp-input--readonly input.jira-input--readonly:disabled
+{
+  color: #4c4f50;
+  background-color: white;
+}

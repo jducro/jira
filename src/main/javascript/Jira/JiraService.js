@@ -213,6 +213,38 @@ export class JiraService
     ;
   }
 
+  updateIssue(issue, fields)
+  {
+    let issueId;
+    try {
+      issueId = parseIssueIdentifier(issue);
+    } catch (e) {
+      return Promise.reject(e);
+    }
+
+    const {
+      /** @type {function} **/ httpClient,
+      /** @type {string} **/ instanceUrl
+    } = this.props;
+
+    const jiraApi = new JiraApi({ instanceUrl });
+    const updateIssue = jiraApi.endpoint(`issue/${issueId}`);
+
+    return httpClient(updateIssue.url, updateIssue.initRequest({
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json' ,
+          'Accept': 'application/json' ,
+          'Content-Length': JSON.stringify({fields}).length
+        },
+        body: JSON.stringify({fields})
+      }))
+      .catch(err => Promise.reject(err))
+      //.then(response => { return response.body; }) we're receiving a 204 from jira, so we return the original issue
+      .then(response => { return issue; })
+    ;
+  }
+
   searchIssue(query)
   {
     if (! query) {

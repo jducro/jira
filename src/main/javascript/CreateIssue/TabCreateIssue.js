@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import { IssueForm } from '../UI';
 import { Routes } from '../App';
 import { createLinkJiraIssueAction } from '../LinkIssues';
+import { createCreateJiraIssueAction } from '../CreateIssue';
+import { createThrottle } from '../Infrastructure';
 
 export class TabCreateIssue  extends React.Component
 {
@@ -19,8 +21,6 @@ export class TabCreateIssue  extends React.Component
   };
 
   static contextTypes = {
-
-    createJiraIssue: PropTypes.func.isRequired,
 
     loadJiraCreateMeta: PropTypes.func.isRequired,
 
@@ -40,7 +40,8 @@ export class TabCreateIssue  extends React.Component
       issueTypes: [],
       primaryFields: [],
       secondaryFields: [],
-      values: {}
+      values: {},
+      formSubmitted: false
     }
   }
 
@@ -55,7 +56,7 @@ export class TabCreateIssue  extends React.Component
 
         const projects = createMeta.getProjectList();
         const issueTypes = createMeta.getIssueTypeList(projects[0]);
-        const values = { project: projects[0].id, issuetype: issueTypes[0].id, summary: this.props.comment || "" };
+        const values = { project: projects[0], issuetype: issueTypes[0], summary: this.props.comment || "" };
 
         return { projects, issueTypes, values };
       })
@@ -68,23 +69,28 @@ export class TabCreateIssue  extends React.Component
     ;
   }
 
-  onFieldChange(value, fieldId)
+  /**
+   * @param {*} value
+   * @param {Object} field
+   */
+  onFieldChange(value, field)
   {
     let setStatePromise;
 
-    if ('project' === fieldId) {
+    if ('project' === field) {
       setStatePromise = this.loadFieldDefinitions(value).then(state => {
         const values = { project: value, issuetype: state.issueTypes.length ? state.issueTypes[0] : null };
         return { ...state, values };
       });
-    } else if ('issuetype' === fieldId) {
+    } else if ('issuetype' === field) {
       const { project } = this.state.values;
       setStatePromise = this.loadFieldDefinitions(project, value).then(state => {
         const values = { project, issuetype: value };
         return { ...state, values };
       });
     } else {
-      const values = { ...this.state.values, [fieldId]: value };
+
+      const values = { ...this.state.values, [field.key]: value };
       setStatePromise = Promise.resolve({ values })
     }
 
@@ -101,6 +107,7 @@ export class TabCreateIssue  extends React.Component
 
     return loadJiraCreateMeta()
       .then(createMeta => {
+
         const issueTypes = issueType ? null : createMeta.getIssueTypeList(project);
         const nextIssueType = issueType || issueTypes[0];
         const fields = createMeta.getFieldLists(project, nextIssueType);
@@ -117,33 +124,41 @@ export class TabCreateIssue  extends React.Component
   {
     const { values } = this.state;
     let model = JSON.parse(JSON.stringify(values));
-    model = { ...model, project: { id: values.project }, issuetype : { id: values.issuetype } };
 
     const {
       /** @type {function} */ ticket,
-      /** @type {function({}):Promise} */ createJiraIssue,
     } = this.context;
 
     const { /** @type {{to:function}} */ route, dispatch } = this.props;
 
-    createJiraIssue(model)
-      .then(issue => dispatch(createLinkJiraIssueAction(issue, ticket())))
-      .then(() => route.to(Routes.linkedIssues));
+    // let's wait see the changes in the ui before sending the request
+    const waitForRenderMillis = 500;
+    this.setState({formSubmitted: true});
+
+    setTimeout(
+      dispatch(createCreateJiraIssueAction(model))
+        .then(issue => dispatch(createLinkJiraIssueAction(issue, ticket())))
+        .then(() => route.to(Routes.linkedIssues))
+      , waitForRenderMillis
+    );
+
   }
 
   render()
   {
-    const { projects, issueTypes, primaryFields, secondaryFields, values } = this.state;
+    const { projects, issueTypes, primaryFields, secondaryFields, values, formSubmitted } = this.state;
 
     return (<IssueForm
       onChange = { TabCreateIssue.prototype.onFieldChange.bind(this) }
-      onSubmit = { TabCreateIssue.prototype.onSubmit.bind(this) }
+      onSubmit = { createThrottle(TabCreateIssue.prototype.onSubmit.bind(this)) }
 
-      projects = { projects }
-      issueTypes = { issueTypes }
+      renderProject={IssueForm.createRenderSelect(projects)}
+      renderIssueType={IssueForm.createRenderSelect(issueTypes)}
+
       primaryFields = { primaryFields }
       secondaryFields = { secondaryFields }
       values = {values}
+      loading = { formSubmitted }
     />);
   }
 }
