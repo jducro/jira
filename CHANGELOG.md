@@ -4,6 +4,10 @@ This project is following [Semantic Versioning](http://semver.org)
 
 ## [Unreleased][]
 
+### Added
+
+ - allow editing jira tasks
+
 ## [0.1.0-beta.3][] - 2017-12-13
 
 ### Fixed
