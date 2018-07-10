@@ -43,7 +43,6 @@ lib
 *.iml
 
 # Misc
-docs
 .cache
 
 # Secrets folder
